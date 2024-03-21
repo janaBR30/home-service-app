@@ -2,9 +2,30 @@ import React from 'react'
 import { Image, Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import Color from '../../Utils/Color'
+import * as WebBrowser from "expo-web-browser";
+import { useWarmUpBrowser } from "../../hooks/useWarmUpBrowser";
+import { useOAuth } from "@clerk/clerk-expo";
 
+WebBrowser.maybeCompleteAuthSession();
 export default function Login() {
-   
+  useWarmUpBrowser();
+
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+
+  const onPress = React.useCallback(async () => {
+    try {
+      const { createdSessionId, signIn, signUp, setActive } =
+        await startOAuthFlow();
+ 
+      if (createdSessionId) {
+        setActive({ session: createdSessionId });
+      } else {
+        // Use signIn or signUp for next steps such as MFA
+      }
+    } catch (err) {
+      console.error("OAuth error", err);
+    }
+  }, []);
     return (
       <View style={{alignItems: 'center'}}>
         <Image source={require('../../../assets/logo.png')} 
@@ -15,7 +36,7 @@ export default function Login() {
                 Vamos encontrar Profesionales para sus servicios!
                 </Text>
 
-                <TouchableOpacity style={styles.button} onPress={()=>console.log("Button Click")}>
+                <TouchableOpacity style={styles.button} onPress={onPress}>
                   <Text style={{textAlign: 'center', fontWeight: 'bold', fontSize:18, color: Color.PRIMARY }}>Login</Text>
                  </TouchableOpacity>
         </View>
